@@ -88,5 +88,9 @@ module.exports.getUsersCountCtrl = asyncHandler(async (req, res) => {
 -----------------------------------------------------*/
 
 module.exports.profilePhotoUploadCtrl = asyncHandler(async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ message: "no fille provided" });
+  }
+
   res.status(200).json({ message: "your profile photo uploaded successfully" });
 });
