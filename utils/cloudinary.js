@@ -24,7 +24,7 @@ const cloudinaryRemoveImage = async (imagePublicId) => {
     const result = await cloudinary.uploader.destroy(imagePublicId);
     return result;
   } catch (error) {
-    console.log(error);
+    return console.log(error);
   }
 };
 
