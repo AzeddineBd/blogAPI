@@ -18,7 +18,7 @@ const {
 module.exports.getAllUsersCtrl = asyncHandler(async (req, res) => {
   // verify token
   // console.log(req.headers.authorization.split(" ")[1]);
-  const users = await User.find().select("-password");
+  const users = await User.find().select("-password").populate("posts");
   res.status(200).json(users);
 });
 
@@ -30,7 +30,9 @@ module.exports.getAllUsersCtrl = asyncHandler(async (req, res) => {
 -----------------------------------------------------*/
 
 module.exports.getUserProfileCtrl = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.params.id).select("-password");
+  const user = await User.findById(req.params.id)
+    .select("-password")
+    .populate("posts");
   if (!user) {
     return res.status(404).json({ message: "user not found" });
   }
@@ -39,9 +41,9 @@ module.exports.getUserProfileCtrl = asyncHandler(async (req, res) => {
 });
 
 /**--------------------------------------------------- 
- * @desc   Get User Profile 
+ * @desc   Update User Profile 
  * @router /api/users/profile/:id
- * @method GET
+ * @method PUT
  * @access public (only user himself)
 -----------------------------------------------------*/
 
