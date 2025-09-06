@@ -1,5 +1,9 @@
 const asyncHandler = require("express-async-handler");
-const { Comment, validateCreateComment } = require("../models/Comment");
+const {
+  Comment,
+  validateCreateComment,
+  validateUpdateComment,
+} = require("../models/Comment");
 const { User } = require("../models/User");
 
 /**-----------------------------------------------
@@ -7,7 +11,7 @@ const { User } = require("../models/User");
  * @route   /api/comments
  * @method  POST
  * @access  private (only logged in user)
- ------------------------------------------------*/
+------------------------------------------------*/
 module.exports.createCommentCtrl = asyncHandler(async (req, res) => {
   const { error } = validateCreateComment(req.body);
   if (error) {
@@ -31,7 +35,7 @@ module.exports.createCommentCtrl = asyncHandler(async (req, res) => {
  * @route   /api/comments
  * @method  GET
  * @access  private (only admin)
- ------------------------------------------------*/
+------------------------------------------------*/
 module.exports.getAllCommentsCtrl = asyncHandler(async (req, res) => {
   const comments = await Comment.find().populate("user");
   res.status(200).json(comments);
@@ -42,7 +46,7 @@ module.exports.getAllCommentsCtrl = asyncHandler(async (req, res) => {
  * @route   /api/comments/:id
  * @method  DELETE
  * @access  private (only admin or owner of the comment)
- ------------------------------------------------*/
+------------------------------------------------*/
 module.exports.deleteCommentCtrl = asyncHandler(async (req, res) => {
   const comment = await Comment.findById(req.params.id);
   if (!comment) {
@@ -55,4 +59,40 @@ module.exports.deleteCommentCtrl = asyncHandler(async (req, res) => {
   } else {
     res.status(403).json({ message: "access denied, not allowed" });
   }
+});
+
+/**-----------------------------------------------
+ * @desc    Update Comment
+ * @route   /api/comments/:id
+ * @method  PUT
+ * @access  private (only owner of the comment)
+------------------------------------------------*/
+module.exports.updateCommentCtrl = asyncHandler(async (req, res) => {
+  const { error } = validateUpdateComment(req.body);
+  if (error) {
+    return res.status(400).json({ message: error.details[0].message });
+  }
+
+  const comment = await Comment.findById(req.params.id);
+  if (!comment) {
+    return res.status(404).json({ message: "comment not found" });
+  }
+
+  if (req.user.id !== comment.user.toString()) {
+    return res.status(403).json({
+      message: "access denied, only user himself can edit his comment",
+    });
+  }
+
+  const updatedComment = await Comment.findByIdAndUpdate(
+    req.params.id,
+    {
+      $set: {
+        text: req.body.text,
+      },
+    },
+    { new: true }
+  );
+
+  res.status(200).json(updatedComment);
 });
